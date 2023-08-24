@@ -7,11 +7,12 @@ import (
 )
 
 // A Group is a cache namespace and associated data loaded spread over
+// 一个Group对应一个数据源
 type Group struct {
 	name      string
-	getter    Getter
-	mainCache cache
-	peers     PeerPicker
+	getter    Getter     // 从数据源获取数据
+	mainCache cache      // 从自己的节点上获取数据；不同节点上，缓存着来自同一个数据源的不同数据
+	peers     PeerPicker // 从其他节点的缓存获取数据
 }
 
 // A Getter loads data for a key.
@@ -58,16 +59,18 @@ func GetGroup(name string) *Group {
 }
 
 // Get value for a key from cache
+// Group层面的获取数据，确保一定能找到键对应的值（如果有的话）
 func (g *Group) Get(key string) (ByteView, error) {
 	if key == "" {
 		return ByteView{}, fmt.Errorf("key is required")
 	}
 
+	// 尝试从本节点的cache中获取
 	if v, ok := g.mainCache.get(key); ok {
 		log.Println("[GeeCache] hit")
 		return v, nil
 	}
-
+	// 尝试从其他节点的cache中获取，没有再通过getter从本地对数据源进行读取
 	return g.load(key)
 }
 

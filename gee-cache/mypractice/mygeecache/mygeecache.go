@@ -49,6 +49,7 @@ func NewGroup(name string, cacheBytes int64, getter Getter) *Group {
 	return g
 }
 
+// 根据group的名字从全局groups表中获得group
 func GetGroup(name string) *Group {
 	// 由于只涉及groups的读，所以只要加读锁即可
 	mu.RLock()

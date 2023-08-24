@@ -33,10 +33,15 @@ func createGroup() *geecache.Group {
 		}))
 }
 
+// HTTPPool负责处理请求，对于一个请求的URL，找到这个请求对应的数据源（Group）
+// 找到Cgroup后，调用Cgroup的Get方法，得到请求的键对应的值
+// Cgroup的Get方法，可能走：1.本节点的缓存 Group.mainCache
+// 2.其他节点的缓存 Group.peers
+// 3.数据源 Group.getter
 func startCacheServer(addr string, addrs []string, gee *geecache.Group) {
 	peers := geecache.NewHTTPPool(addr)
-	peers.Set(addrs...)
-	gee.RegisterPeers(peers)
+	peers.Set(addrs...)      // 为所有节点设置虚拟节点和httpGetter，因为之后可能需要获得其他节点的缓存值
+	gee.RegisterPeers(peers) // 通过Group可以找到peers，方便在Group.Load中调用peers.PickPeer
 	log.Println("geecache is running at", addr)
 	log.Fatal(http.ListenAndServe(addr[7:], peers))
 }

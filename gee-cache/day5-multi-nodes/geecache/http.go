@@ -76,10 +76,10 @@ func (p *HTTPPool) Set(peers ...string) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.peers = consistenthash.New(defaultReplicas, nil)
-	p.peers.Add(peers...)
+	p.peers.Add(peers...) //为实际的节点设置虚拟的节点，并记录虚拟节点到实际节点的映射
 	p.httpGetters = make(map[string]*httpGetter, len(peers))
 	for _, peer := range peers {
-		p.httpGetters[peer] = &httpGetter{baseURL: peer + p.basePath}
+		p.httpGetters[peer] = &httpGetter{baseURL: peer + p.basePath} //为每个实际节点，创建一个httpGetter;通过httpGetter向实际节点发出请求
 	}
 }
 
